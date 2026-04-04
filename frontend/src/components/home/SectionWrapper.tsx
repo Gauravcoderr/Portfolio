@@ -1,0 +1,43 @@
+"use client";
+
+import { motion } from "framer-motion";
+
+interface SectionWrapperProps {
+  id: string;
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}
+
+export default function SectionWrapper({
+  id,
+  title,
+  subtitle,
+  children,
+}: SectionWrapperProps) {
+  return (
+    <section id={id} className="max-w-6xl mx-auto px-6 py-20 md:py-28">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      >
+        {/* Section heading */}
+        <div className="mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold mb-2">
+            {title}
+            <span className="block mt-2 h-1 w-12 rounded-full bg-[var(--accent)]" />
+          </h2>
+          {subtitle && (
+            <p className="mt-4 text-[var(--text-secondary)] text-lg max-w-2xl">
+              {subtitle}
+            </p>
+          )}
+        </div>
+
+        {children}
+      </motion.div>
+    </section>
+  );
+}
