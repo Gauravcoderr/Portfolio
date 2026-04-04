@@ -105,7 +105,7 @@ INSERT INTO projects (title, slug, description, bullets, image_url, live_url, gi
   'Portfolio', 'portfolio',
   'Open-source developer portfolio with FastAPI backend, PostgreSQL (Supabase) data store, admin CMS, theme customization, and resume management.',
   '["Fully editable portfolio via admin panel with CRUD for all content sections.","Runtime theme color customization with preset palettes and live preview.","Resume upload and contact form with admin message management."]',
-  '', '', 'https://github.com/Gauravcoderr',
+  '', 'https://gaurav-rauthan.vercel.app/', 'https://github.com/Gauravcoderr',
   '["Next.js 14","TypeScript","Tailwind CSS","FastAPI","PostgreSQL","Supabase"]',
   'personal', FALSE, 7
 );

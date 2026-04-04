@@ -6,6 +6,7 @@ import { ExternalLink, Github, Globe, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import type { Project } from "@/types";
 import SectionWrapper from "./SectionWrapper";
+import { screenshotUrl } from "@/lib/iconMap";
 
 interface ProjectsProps {
   items: Project[];
@@ -23,11 +24,6 @@ const tabs: { label: string; value: FilterTab }[] = [
 const IFRAME_BLOCKED_DOMAINS = ["embtalent.ai", "starquik.com"];
 function isIframeBlocked(url: string): boolean {
   return IFRAME_BLOCKED_DOMAINS.some((d) => url.includes(d));
-}
-
-// microlink.io: free, no API key, returns screenshot as a direct image URL
-function screenshotUrl(url: string): string {
-  return `https://api.microlink.io/?url=${encodeURIComponent(url)}&screenshot=true&meta=false&embed=screenshot.url`;
 }
 
 function BrowserChrome({ domain }: { domain: string }) {
@@ -62,7 +58,7 @@ function Shimmer() {
 }
 
 // Screenshot via microlink.io with scroll-on-hover animation
-function ScreenshotPreview({ url, title }: { url: string; title: string }) {
+function ScreenshotPreview({ url, title, isHovered }: { url: string; title: string; isHovered: boolean }) {
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
   const src = screenshotUrl(url);
@@ -75,14 +71,15 @@ function ScreenshotPreview({ url, title }: { url: string; title: string }) {
         <img
           src={src}
           alt={title}
-          className="w-full object-cover object-top transition-all duration-[3500ms] ease-in-out"
+          className="w-full"
           style={{
             display: "block",
-            height: "180px",
-            objectFit: "cover",
-            objectPosition: "top",
+            height: "auto",
             opacity: loaded ? 1 : 0,
-            transition: "opacity 0.3s ease",
+            transform: isHovered ? "translateY(-20%)" : "translateY(0)",
+            transition: isHovered
+              ? "transform 4s ease-in-out, opacity 0.3s ease"
+              : "transform 1s ease, opacity 0.3s ease",
           }}
           loading="lazy"
           onLoad={() => setLoaded(true)}
@@ -98,7 +95,9 @@ function ScreenshotPreview({ url, title }: { url: string; title: string }) {
 }
 
 // Iframe preview with screenshot fallback on timeout / block
-function IframePreview({ url, title }: { url: string; title: string }) {
+// iframe is 1280×2000 scaled to 0.3 → 384×600px visual, container clips to 180px
+// On hover: translateY(-1400px) shifts content up 1400×0.3=420px visually
+function IframePreview({ url, title, isHovered }: { url: string; title: string; isHovered: boolean }) {
   const [status, setStatus] = useState<"loading" | "loaded" | "screenshot">(
     isIframeBlocked(url) ? "screenshot" : "loading"
   );
@@ -113,7 +112,7 @@ function IframePreview({ url, title }: { url: string; title: string }) {
   }, [status]);
 
   if (status === "screenshot") {
-    return <ScreenshotPreview url={url} title={title} />;
+    return <ScreenshotPreview url={url} title={title} isHovered={isHovered} />;
   }
 
   return (
@@ -126,12 +125,14 @@ function IframePreview({ url, title }: { url: string; title: string }) {
         className="absolute top-0 left-0 border-0"
         style={{
           width: "1280px",
-          height: "600px",
-          transform: "scale(0.3)",
+          height: "2000px",
+          transform: `scale(0.3) translateY(${isHovered ? -1400 : 0}px)`,
           transformOrigin: "top left",
           pointerEvents: "none",
           opacity: status === "loaded" ? 1 : 0,
-          transition: "opacity 0.35s ease",
+          transition: isHovered
+            ? "transform 4s ease-in-out, opacity 0.35s ease"
+            : "transform 1s ease, opacity 0.35s ease",
         }}
         loading="lazy"
         onLoad={() => {
@@ -147,7 +148,7 @@ function IframePreview({ url, title }: { url: string; title: string }) {
   );
 }
 
-function ProjectPreview({ project, idx }: { project: Project; idx: number }) {
+function ProjectPreview({ project, idx, isHovered }: { project: Project; idx: number; isHovered: boolean }) {
   const domain = project.live_url
     ? project.live_url.replace(/^https?:\/\//, "").replace(/\/$/, "")
     : "";
@@ -173,7 +174,7 @@ function ProjectPreview({ project, idx }: { project: Project; idx: number }) {
   return (
     <div className="bg-[#0d0d0d]">
       <BrowserChrome domain={domain} />
-      <IframePreview url={project.live_url} title={project.title} />
+      <IframePreview url={project.live_url} title={project.title} isHovered={isHovered} />
     </div>
   );
 }
@@ -221,113 +222,122 @@ export default function Projects({ items }: ProjectsProps) {
           className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5"
         >
           {filtered.map((project, i) => (
-            <motion.div
-              key={project.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, delay: i * 0.06 }}
-              className={`group relative flex flex-col rounded-2xl overflow-hidden border transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-black/50 ${
-                project.is_featured
-                  ? "border-[var(--accent)]/25 bg-[var(--bg-card)] hover:border-[var(--accent)]/50"
-                  : "border-[var(--border)] bg-[var(--bg-card)] hover:border-[#2a2a2a]"
-              }`}
-            >
-              <ProjectPreview project={project} idx={i} />
-
-              {/* Info */}
-              <div className="flex flex-col flex-1 p-5">
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <Link
-                    href={`/projects/${project.slug}`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="text-base font-semibold leading-tight hover:text-[var(--accent)] transition-colors"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    {project.title}
-                  </Link>
-                  {project.is_featured && (
-                    <span className="shrink-0 text-[10px] font-medium text-[var(--accent)] bg-[var(--accent)]/10 border border-[var(--accent)]/20 rounded-full px-2 py-0.5">
-                      Featured
-                    </span>
-                  )}
-                </div>
-
-                <p className="text-xs text-[var(--text-secondary)] line-clamp-2 mb-3 leading-relaxed">
-                  {project.description}
-                </p>
-
-                {project.bullets.length > 0 && (
-                  <ul className="space-y-1 mb-3">
-                    {project.bullets.slice(0, 2).map((bullet, bIdx) => (
-                      <li
-                        key={bIdx}
-                        className="text-[11px] text-[var(--text-muted)] pl-3 relative leading-relaxed
-                          before:content-[''] before:absolute before:left-0 before:top-[7px]
-                          before:w-1 before:h-1 before:rounded-full before:bg-[var(--accent)]/40"
-                      >
-                        {bullet}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                {project.tech_stack.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-auto pt-3">
-                    {project.tech_stack.slice(0, 5).map((tech) => (
-                      <span
-                        key={tech}
-                        className="bg-[#0d0d0d] border border-[var(--border)] rounded px-2 py-0.5 text-[10px] text-[var(--text-muted)]"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                    {project.tech_stack.length > 5 && (
-                      <span className="text-[10px] text-[var(--text-muted)] self-center">
-                        +{project.tech_stack.length - 5}
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                <div className="flex items-center gap-3 pt-3 mt-3 border-t border-[var(--border)]">
-                  {project.live_url && (
-                    <a
-                      href={project.live_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex items-center gap-1.5 text-xs font-medium text-[var(--accent)] hover:text-[var(--accent-light)] transition-colors"
-                    >
-                      <ExternalLink size={12} />
-                      Live
-                    </a>
-                  )}
-                  {project.github_url && (
-                    <a
-                      href={project.github_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-                    >
-                      <Github size={12} />
-                      GitHub
-                    </a>
-                  )}
-                  <Link
-                    href={`/projects/${project.slug}`}
-                    className="ml-auto flex items-center gap-1 text-xs font-medium transition-colors hover:text-[var(--accent-light)]"
-                    style={{ color: "var(--accent)" }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    Details <ArrowRight size={11} />
-                  </Link>
-                </div>
-              </div>
-            </motion.div>
+            <ProjectCard key={project.id} project={project} i={i} />
           ))}
         </motion.div>
       </AnimatePresence>
     </SectionWrapper>
+  );
+}
+
+function ProjectCard({ project, i }: { project: Project; i: number }) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, delay: i * 0.06 }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={`group relative flex flex-col rounded-2xl overflow-hidden border transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl ${
+        project.is_featured
+          ? "hover:shadow-[var(--accent)]/20 border-[var(--accent)]/25 bg-[var(--bg-card)] hover:border-[var(--accent)]/50"
+          : "hover:shadow-black/50 border-[var(--border)] bg-[var(--bg-card)] hover:border-[var(--accent)]/30"
+      }`}
+    >
+      <ProjectPreview project={project} idx={i} isHovered={isHovered} />
+
+      {/* Info */}
+      <div className="flex flex-col flex-1 p-5">
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <Link
+            href={`/projects/${project.slug}`}
+            onClick={(e) => e.stopPropagation()}
+            className="text-base font-semibold leading-tight hover:text-[var(--accent)] transition-colors"
+            style={{ color: "var(--text-primary)" }}
+          >
+            {project.title}
+          </Link>
+          {project.is_featured && (
+            <span className="shrink-0 text-[10px] font-medium text-[var(--accent)] bg-[var(--accent)]/10 border border-[var(--accent)]/20 rounded-full px-2 py-0.5">
+              Featured
+            </span>
+          )}
+        </div>
+
+        <p className="text-xs text-[var(--text-secondary)] line-clamp-2 mb-3 leading-relaxed">
+          {project.description}
+        </p>
+
+        {project.bullets.length > 0 && (
+          <ul className="space-y-1 mb-3">
+            {project.bullets.slice(0, 2).map((bullet, bIdx) => (
+              <li
+                key={bIdx}
+                className="text-[11px] text-[var(--text-muted)] pl-3 relative leading-relaxed
+                  before:content-[''] before:absolute before:left-0 before:top-[7px]
+                  before:w-1 before:h-1 before:rounded-full before:bg-[var(--accent)]/40"
+              >
+                {bullet}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {project.tech_stack.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-auto pt-3">
+            {project.tech_stack.slice(0, 5).map((tech) => (
+              <span
+                key={tech}
+                className="bg-[#0d0d0d] border border-[var(--border)] rounded px-2 py-0.5 text-[10px] text-[var(--text-muted)]"
+              >
+                {tech}
+              </span>
+            ))}
+            {project.tech_stack.length > 5 && (
+              <span className="text-[10px] text-[var(--text-muted)] self-center">
+                +{project.tech_stack.length - 5}
+              </span>
+            )}
+          </div>
+        )}
+
+        <div className="flex items-center gap-3 pt-3 mt-3 border-t border-[var(--border)]">
+          {project.live_url && (
+            <a
+              href={project.live_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-1.5 text-xs font-medium text-[var(--accent)] hover:text-[var(--accent-light)] transition-colors"
+            >
+              <ExternalLink size={12} />
+              Live
+            </a>
+          )}
+          {project.github_url && (
+            <a
+              href={project.github_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+            >
+              <Github size={12} />
+              GitHub
+            </a>
+          )}
+          <Link
+            href={`/projects/${project.slug}`}
+            className="ml-auto flex items-center gap-1 text-xs font-medium transition-colors hover:text-[var(--accent-light)]"
+            style={{ color: "var(--accent)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            Details <ArrowRight size={11} />
+          </Link>
+        </div>
+      </div>
+    </motion.div>
   );
 }

@@ -1,7 +1,10 @@
 import json
-from fastapi import APIRouter, Depends, HTTPException
+import asyncio
+import urllib.request
+import urllib.error
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from datetime import datetime, timezone
-from config.database import get_pool
+from config.database import get_pool, settings
 from middleware.auth import verify_admin
 from models.schemas import (
     ProfileUpdate,
@@ -71,6 +74,37 @@ async def update_profile(data: ProfileUpdate):
             )
         row = await conn.fetchrow("SELECT * FROM profile LIMIT 1")
     return row_to_dict(row)
+
+
+# --- Resume Upload ---
+@router.post("/resume/upload")
+async def upload_resume(file: UploadFile = File(...)):
+    if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_KEY or settings.SUPABASE_SERVICE_KEY == "your-service-role-key-here":
+        raise HTTPException(status_code=500, detail="Supabase storage not configured. Add SUPABASE_URL and SUPABASE_SERVICE_KEY to .env")
+
+    content = await file.read()
+    content_type = file.content_type or "application/pdf"
+    storage_url = f"{settings.SUPABASE_URL}/storage/v1/object/portfolio/resume.pdf"
+
+    def do_upload():
+        req = urllib.request.Request(storage_url, data=content, method="POST")
+        req.add_header("Authorization", f"Bearer {settings.SUPABASE_SERVICE_KEY}")
+        req.add_header("Content-Type", content_type)
+        req.add_header("x-upsert", "true")
+        try:
+            urllib.request.urlopen(req)
+        except urllib.error.HTTPError as e:
+            body = e.read().decode()
+            raise RuntimeError(f"Supabase upload failed ({e.code}): {body}")
+
+    loop = asyncio.get_event_loop()
+    try:
+        await loop.run_in_executor(None, do_upload)
+    except RuntimeError as e:
+        raise HTTPException(status_code=502, detail=str(e))
+
+    public_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/portfolio/resume.pdf"
+    return {"url": public_url}
 
 
 # --- Experience ---

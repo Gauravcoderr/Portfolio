@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     ADMIN_USERNAME: str = "admin"
     ADMIN_PASSWORD: str = "admin123"
     FRONTEND_URL: str = "http://localhost:3000"
+    SUPABASE_URL: str = ""
+    SUPABASE_SERVICE_KEY: str = ""
 
     class Config:
         env_file = ".env"

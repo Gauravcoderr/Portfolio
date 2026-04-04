@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useEffect, FormEvent } from "react";
-import { fetchPortfolioClient, updateProfile } from "@/lib/api";
+import { useState, useEffect, useRef, FormEvent } from "react";
+import { fetchPortfolioClient, updateProfile, uploadResume } from "@/lib/api";
 import { Profile } from "@/types";
 
 export default function AdminProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = useState("");
   const [title, setTitle] = useState("");
@@ -244,9 +246,75 @@ export default function AdminProfilePage() {
             Resume
           </h2>
 
+          {/* File upload */}
+          <div>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-3">
+              Upload PDF
+            </label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,application/pdf"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                setUploading(true);
+                setError("");
+                try {
+                  const url = await uploadResume(file);
+                  setResumeUrl(url);
+                  setSuccess("Resume uploaded — click Save Changes to apply.");
+                  setTimeout(() => setSuccess(""), 4000);
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "Upload failed");
+                } finally {
+                  setUploading(false);
+                  if (fileInputRef.current) fileInputRef.current.value = "";
+                }
+              }}
+            />
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                disabled={uploading}
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[var(--border)] bg-[#0d0d0d] text-sm font-medium text-[var(--text-secondary)] hover:text-white hover:border-[var(--accent)] transition-colors disabled:opacity-50"
+              >
+                {uploading ? (
+                  <>
+                    <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    </svg>
+                    Uploading…
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    Choose PDF
+                  </>
+                )}
+              </button>
+              {resumeUrl && (
+                <a
+                  href={resumeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-[var(--accent)] hover:underline truncate max-w-xs"
+                >
+                  View current resume ↗
+                </a>
+              )}
+            </div>
+          </div>
+
+          {/* Manual URL fallback */}
           <div>
             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-              Resume URL
+              Or paste a URL
             </label>
             <input
               type="url"

@@ -8,60 +8,7 @@ import {
   Code2, Briefcase, Star, ChevronRight,
 } from "lucide-react";
 import type { Project } from "@/types";
-
-const DEVICON = "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons";
-const SIMPLEICONS = "https://cdn.simpleicons.org";
-
-const ICON_MAP: Record<string, { cdn: "devicon" | "simple"; slug: string }> = {
-  "React.js": { cdn: "devicon", slug: "react/react-original" },
-  "Next.js": { cdn: "simple", slug: "nextdotjs/ffffff" },
-  "TypeScript": { cdn: "devicon", slug: "typescript/typescript-original" },
-  "JavaScript (ES6+)": { cdn: "devicon", slug: "javascript/javascript-original" },
-  "JavaScript": { cdn: "devicon", slug: "javascript/javascript-original" },
-  "Redux": { cdn: "devicon", slug: "redux/redux-original" },
-  "React Query": { cdn: "simple", slug: "reactquery/ffffff" },
-  "Tailwind CSS": { cdn: "simple", slug: "tailwindcss/ffffff" },
-  "HTML5": { cdn: "devicon", slug: "html5/html5-original" },
-  "CSS3": { cdn: "devicon", slug: "css3/css3-original" },
-  "SCSS": { cdn: "devicon", slug: "sass/sass-original" },
-  "Bootstrap": { cdn: "devicon", slug: "bootstrap/bootstrap-original" },
-  "Material UI": { cdn: "devicon", slug: "materialui/materialui-original" },
-  "Radix UI": { cdn: "simple", slug: "radixui/ffffff" },
-  "shadcn/ui": { cdn: "simple", slug: "shadcnui/ffffff" },
-  "React Hook Form": { cdn: "simple", slug: "reacthookform/ffffff" },
-  "Framer Motion": { cdn: "simple", slug: "framer/ffffff" },
-  "Zod": { cdn: "simple", slug: "zod/ffffff" },
-  "dnd-kit": { cdn: "devicon", slug: "react/react-original" },
-  "Node.js": { cdn: "devicon", slug: "nodejs/nodejs-original" },
-  "Express.js": { cdn: "devicon", slug: "express/express-original" },
-  "FastAPI": { cdn: "devicon", slug: "fastapi/fastapi-original" },
-  "Python": { cdn: "devicon", slug: "python/python-original" },
-  "Firebase": { cdn: "devicon", slug: "firebase/firebase-plain" },
-  "MongoDB": { cdn: "devicon", slug: "mongodb/mongodb-original" },
-  "PostgreSQL": { cdn: "devicon", slug: "postgresql/postgresql-original" },
-  "Git": { cdn: "devicon", slug: "git/git-original" },
-  "GitHub": { cdn: "devicon", slug: "github/github-original" },
-  "Docker": { cdn: "devicon", slug: "docker/docker-original" },
-  "Vercel": { cdn: "simple", slug: "vercel/ffffff" },
-  "Supabase": { cdn: "devicon", slug: "supabase/supabase-original" },
-  "Cloudinary": { cdn: "devicon", slug: "cloudinary/cloudinary-original" },
-  "Figma": { cdn: "devicon", slug: "figma/figma-original" },
-  "Generative AI": { cdn: "simple", slug: "openai/ffffff" },
-  "Google Gemini": { cdn: "simple", slug: "googlegemini/ffffff" },
-  "Claude API": { cdn: "simple", slug: "anthropic/ffffff" },
-  "Groq": { cdn: "simple", slug: "groq/ffffff" },
-  "Mixpanel": { cdn: "simple", slug: "mixpanel/ffffff" },
-  "JWT": { cdn: "simple", slug: "jsonwebtokens/ffffff" },
-  "Razorpay": { cdn: "simple", slug: "razorpay/ffffff" },
-};
-
-function getIconUrl(name: string): string | null {
-  const entry = ICON_MAP[name];
-  if (!entry) return null;
-  return entry.cdn === "devicon"
-    ? `${DEVICON}/${entry.slug}.svg`
-    : `${SIMPLEICONS}/${entry.slug}`;
-}
+import { getIconUrl, screenshotUrl } from "@/lib/iconMap";
 
 function TechBadge({ name }: { name: string }) {
   const iconUrl = getIconUrl(name);
@@ -88,7 +35,7 @@ function TechBadge({ name }: { name: string }) {
 
 function ProjectScreenshot({ url, title }: { url: string; title: string }) {
   const [status, setStatus] = useState<"loading" | "loaded" | "error">("loading");
-  const src = `https://api.microlink.io/?url=${encodeURIComponent(url)}&screenshot=true&meta=false&embed=screenshot.url`;
+  const src = screenshotUrl(url);
   const domain = url.replace(/^https?:\/\//, "").replace(/\/$/, "");
 
   return (
