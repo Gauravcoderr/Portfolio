@@ -25,6 +25,7 @@ async def connect_db():
         min_size=1,
         max_size=10,
         statement_cache_size=0,
+        ssl='require',
     )
 
 

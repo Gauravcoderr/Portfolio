@@ -25,7 +25,8 @@ async def seed():
         print("ERROR: Set DATABASE_URL in .env with your actual Supabase password first.")
         return
 
-    conn = await asyncpg.connect(DATABASE_URL, statement_cache_size=0)
+    pool = await asyncpg.create_pool(DATABASE_URL, min_size=1, max_size=3, statement_cache_size=0, ssl='require')
+    conn = await pool.acquire()
 
     print("Clearing existing data...")
     for table in ["profile", "experience", "projects", "skills", "theme",
@@ -338,7 +339,8 @@ async def seed():
         now,
     )
 
-    await conn.close()
+    await pool.release(conn)
+    await pool.close()
     print("\nSeed completed successfully!")
     print(f"Admin login → username: {ADMIN_USERNAME} | password: {ADMIN_PASSWORD}")
 

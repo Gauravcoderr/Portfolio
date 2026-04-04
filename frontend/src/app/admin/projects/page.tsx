@@ -80,7 +80,7 @@ export default function AdminProjectsPage() {
       is_featured: project.is_featured,
       order: project.order,
     });
-    setEditingId(project._id);
+    setEditingId(project.id);
     setShowForm(true);
   };
 
@@ -435,7 +435,7 @@ export default function AdminProjectsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {projects.map((project) => (
             <div
-              key={project._id}
+              key={project.id}
               className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-6"
             >
               <div className="flex items-start justify-between mb-3">
@@ -468,10 +468,10 @@ export default function AdminProjectsPage() {
                   >
                     <Pencil size={16} />
                   </button>
-                  {confirmDeleteId === project._id ? (
+                  {confirmDeleteId === project.id ? (
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => handleDelete(project._id)}
+                        onClick={() => handleDelete(project.id)}
                         className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 transition-colors"
                       >
                         Confirm
@@ -485,7 +485,7 @@ export default function AdminProjectsPage() {
                     </div>
                   ) : (
                     <button
-                      onClick={() => setConfirmDeleteId(project._id)}
+                      onClick={() => setConfirmDeleteId(project.id)}
                       className="p-2 text-[var(--text-secondary)] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                     >
                       <Trash2 size={16} />

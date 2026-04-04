@@ -129,7 +129,7 @@ export default function AdminThemePage() {
                 }`}
                 style={{
                   backgroundColor: preset.color,
-                  ringColor: preset.color,
+                  outline: selectedColor.toLowerCase() === preset.color.toLowerCase() ? `2px solid ${preset.color}` : undefined,
                 }}
               >
                 {selectedColor.toLowerCase() ===

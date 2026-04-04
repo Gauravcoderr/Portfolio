@@ -6,7 +6,7 @@ export interface SocialLinks {
 }
 
 export interface Profile {
-  _id?: string;
+  id?: string;
   name: string;
   title: string;
   email: string;
@@ -19,7 +19,7 @@ export interface Profile {
 }
 
 export interface Experience {
-  _id: string;
+  id: string;
   company: string;
   role: string;
   location: string;
@@ -33,7 +33,7 @@ export interface Experience {
 }
 
 export interface Project {
-  _id: string;
+  id: string;
   title: string;
   slug: string;
   description: string;
@@ -53,14 +53,14 @@ export interface SkillItem {
 }
 
 export interface SkillCategory {
-  _id: string;
+  id: string;
   category: string;
   items: SkillItem[];
   order: number;
 }
 
 export interface ThemeConfig {
-  _id?: string;
+  id?: string;
   accent_color: string;
   accent_color_name: string;
   font_heading: string;
@@ -76,7 +76,7 @@ export interface PortfolioData {
 }
 
 export interface ContactMessage {
-  _id: string;
+  id: string;
   name: string;
   email: string;
   message: string;

@@ -31,7 +31,7 @@ export default function AdminMessagesPage() {
       await markMessageRead(id);
       setMessages((prev) =>
         prev.map((msg) =>
-          msg._id === id ? { ...msg, is_read: true } : msg
+          msg.id === id ? { ...msg, is_read: true } : msg
         )
       );
     } catch {
@@ -43,7 +43,7 @@ export default function AdminMessagesPage() {
     try {
       await deleteMessage(id);
       setConfirmDeleteId(null);
-      setMessages((prev) => prev.filter((msg) => msg._id !== id));
+      setMessages((prev) => prev.filter((msg) => msg.id !== id));
     } catch {
       setError("Failed to delete message");
     }
@@ -99,7 +99,7 @@ export default function AdminMessagesPage() {
         <div className="space-y-4">
           {messages.map((msg) => (
             <div
-              key={msg._id}
+              key={msg.id}
               className={`bg-[var(--bg-card)] rounded-xl p-6 transition-colors ${
                 msg.is_read
                   ? "border border-[var(--border)]"
@@ -135,7 +135,7 @@ export default function AdminMessagesPage() {
                 <div className="flex items-center gap-2 ml-4 shrink-0">
                   {!msg.is_read && (
                     <button
-                      onClick={() => handleMarkRead(msg._id)}
+                      onClick={() => handleMarkRead(msg.id)}
                       className="p-2 text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 rounded-lg transition-colors"
                       title="Mark as read"
                     >
@@ -150,10 +150,10 @@ export default function AdminMessagesPage() {
                       <Mail size={16} />
                     </div>
                   )}
-                  {confirmDeleteId === msg._id ? (
+                  {confirmDeleteId === msg.id ? (
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => handleDelete(msg._id)}
+                        onClick={() => handleDelete(msg.id)}
                         className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 transition-colors"
                       >
                         Confirm
@@ -167,7 +167,7 @@ export default function AdminMessagesPage() {
                     </div>
                   ) : (
                     <button
-                      onClick={() => setConfirmDeleteId(msg._id)}
+                      onClick={() => setConfirmDeleteId(msg.id)}
                       className="p-2 text-[var(--text-secondary)] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                       title="Delete"
                     >

@@ -80,7 +80,7 @@ export default function AdminExperiencePage() {
       company_url: exp.company_url,
       order: exp.order,
     });
-    setEditingId(exp._id);
+    setEditingId(exp.id);
     setShowForm(true);
   };
 
@@ -431,7 +431,7 @@ export default function AdminExperiencePage() {
         <div className="space-y-4">
           {experiences.map((exp) => (
             <div
-              key={exp._id}
+              key={exp.id}
               className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-6"
             >
               <div className="flex items-start justify-between">
@@ -466,10 +466,10 @@ export default function AdminExperiencePage() {
                   >
                     <Pencil size={16} />
                   </button>
-                  {confirmDeleteId === exp._id ? (
+                  {confirmDeleteId === exp.id ? (
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => handleDelete(exp._id)}
+                        onClick={() => handleDelete(exp.id)}
                         className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 transition-colors"
                       >
                         Confirm
@@ -483,7 +483,7 @@ export default function AdminExperiencePage() {
                     </div>
                   ) : (
                     <button
-                      onClick={() => setConfirmDeleteId(exp._id)}
+                      onClick={() => setConfirmDeleteId(exp.id)}
                       className="p-2 text-[var(--text-secondary)] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                     >
                       <Trash2 size={16} />

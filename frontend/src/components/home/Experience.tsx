@@ -66,7 +66,7 @@ export default function Experience({ items }: ExperienceProps) {
         <div className="space-y-10">
           {sorted.map((exp) => (
             <motion.div
-              key={exp._id}
+              key={exp.id}
               variants={itemVariants}
               className="relative pl-12 md:pl-16"
             >
