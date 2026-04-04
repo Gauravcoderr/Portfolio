@@ -32,7 +32,7 @@ def rows_to_list(rows) -> list:
 
 @router.get("/portfolio")
 async def get_portfolio():
-    pool = get_pool()
+    pool = await get_pool()
     async with pool.acquire() as conn:
         profile_row = await conn.fetchrow("SELECT * FROM profile LIMIT 1")
         experience_rows = await conn.fetch(
@@ -57,7 +57,7 @@ async def get_portfolio():
 
 @router.post("/contact")
 async def submit_contact(data: ContactMessageCreate):
-    pool = get_pool()
+    pool = await get_pool()
     async with pool.acquire() as conn:
         row = await conn.fetchrow(
             """

@@ -15,25 +15,18 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-_pool: asyncpg.Pool = None
+_pool: asyncpg.Pool | None = None
 
 
-async def connect_db():
+async def get_pool() -> asyncpg.Pool:
+    """Lazy-init pool — works in both long-running servers and serverless."""
     global _pool
-    _pool = await asyncpg.create_pool(
-        settings.DATABASE_URL,
-        min_size=1,
-        max_size=10,
-        statement_cache_size=0,
-        ssl='require',
-    )
-
-
-async def close_db():
-    global _pool
-    if _pool:
-        await _pool.close()
-
-
-def get_pool() -> asyncpg.Pool:
+    if _pool is None:
+        _pool = await asyncpg.create_pool(
+            settings.DATABASE_URL,
+            min_size=1,
+            max_size=5,
+            statement_cache_size=0,
+            ssl='require',
+        )
     return _pool

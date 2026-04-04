@@ -45,7 +45,7 @@ def rows_to_list(rows) -> list:
 # --- Profile ---
 @router.put("/profile")
 async def update_profile(data: ProfileUpdate):
-    pool = get_pool()
+    pool = await get_pool()
     now = datetime.now(timezone.utc)
     dump = data.model_dump(exclude_none=True)
     if "social_links" in dump and dump["social_links"]:
@@ -76,7 +76,7 @@ async def update_profile(data: ProfileUpdate):
 # --- Experience ---
 @router.get("/experience")
 async def list_experience():
-    pool = get_pool()
+    pool = await get_pool()
     async with pool.acquire() as conn:
         rows = await conn.fetch('SELECT * FROM experience ORDER BY "order" ASC')
     return rows_to_list(rows)
@@ -84,7 +84,7 @@ async def list_experience():
 
 @router.post("/experience")
 async def create_experience(data: ExperienceCreate):
-    pool = get_pool()
+    pool = await get_pool()
     now = datetime.now(timezone.utc)
     async with pool.acquire() as conn:
         row = await conn.fetchrow(
@@ -105,7 +105,7 @@ async def create_experience(data: ExperienceCreate):
 
 @router.put("/experience/{id}")
 async def update_experience(id: str, data: ExperienceUpdate):
-    pool = get_pool()
+    pool = await get_pool()
     now = datetime.now(timezone.utc)
     dump = data.model_dump(exclude_none=True)
     for k in ("description", "tech_stack"):
@@ -127,7 +127,7 @@ async def update_experience(id: str, data: ExperienceUpdate):
 
 @router.delete("/experience/{id}")
 async def delete_experience(id: str):
-    pool = get_pool()
+    pool = await get_pool()
     async with pool.acquire() as conn:
         result = await conn.execute("DELETE FROM experience WHERE id = $1::uuid", id)
     if result == "DELETE 0":
@@ -138,7 +138,7 @@ async def delete_experience(id: str):
 # --- Projects ---
 @router.get("/projects")
 async def list_projects():
-    pool = get_pool()
+    pool = await get_pool()
     async with pool.acquire() as conn:
         rows = await conn.fetch('SELECT * FROM projects ORDER BY "order" ASC')
     return rows_to_list(rows)
@@ -146,7 +146,7 @@ async def list_projects():
 
 @router.post("/projects")
 async def create_project(data: ProjectCreate):
-    pool = get_pool()
+    pool = await get_pool()
     now = datetime.now(timezone.utc)
     async with pool.acquire() as conn:
         row = await conn.fetchrow(
@@ -167,7 +167,7 @@ async def create_project(data: ProjectCreate):
 
 @router.put("/projects/{id}")
 async def update_project(id: str, data: ProjectUpdate):
-    pool = get_pool()
+    pool = await get_pool()
     now = datetime.now(timezone.utc)
     dump = data.model_dump(exclude_none=True)
     for k in ("bullets", "tech_stack"):
@@ -189,7 +189,7 @@ async def update_project(id: str, data: ProjectUpdate):
 
 @router.delete("/projects/{id}")
 async def delete_project(id: str):
-    pool = get_pool()
+    pool = await get_pool()
     async with pool.acquire() as conn:
         result = await conn.execute("DELETE FROM projects WHERE id = $1::uuid", id)
     if result == "DELETE 0":
@@ -200,7 +200,7 @@ async def delete_project(id: str):
 # --- Skills ---
 @router.get("/skills")
 async def list_skills():
-    pool = get_pool()
+    pool = await get_pool()
     async with pool.acquire() as conn:
         rows = await conn.fetch('SELECT * FROM skills ORDER BY "order" ASC')
     return rows_to_list(rows)
@@ -208,7 +208,7 @@ async def list_skills():
 
 @router.post("/skills")
 async def create_skill_category(data: SkillCategoryCreate):
-    pool = get_pool()
+    pool = await get_pool()
     now = datetime.now(timezone.utc)
     items = [i.model_dump() for i in data.items]
     async with pool.acquire() as conn:
@@ -224,7 +224,7 @@ async def create_skill_category(data: SkillCategoryCreate):
 
 @router.put("/skills/{id}")
 async def update_skill_category(id: str, data: SkillCategoryUpdate):
-    pool = get_pool()
+    pool = await get_pool()
     now = datetime.now(timezone.utc)
     dump = data.model_dump(exclude_none=True)
     if "items" in dump:
@@ -248,7 +248,7 @@ async def update_skill_category(id: str, data: SkillCategoryUpdate):
 
 @router.delete("/skills/{id}")
 async def delete_skill_category(id: str):
-    pool = get_pool()
+    pool = await get_pool()
     async with pool.acquire() as conn:
         result = await conn.execute("DELETE FROM skills WHERE id = $1::uuid", id)
     if result == "DELETE 0":
@@ -259,7 +259,7 @@ async def delete_skill_category(id: str):
 # --- Theme ---
 @router.put("/theme")
 async def update_theme(data: ThemeUpdate):
-    pool = get_pool()
+    pool = await get_pool()
     now = datetime.now(timezone.utc)
     dump = data.model_dump(exclude_none=True)
     async with pool.acquire() as conn:
@@ -285,7 +285,7 @@ async def update_theme(data: ThemeUpdate):
 # --- Messages ---
 @router.get("/messages")
 async def list_messages():
-    pool = get_pool()
+    pool = await get_pool()
     async with pool.acquire() as conn:
         rows = await conn.fetch(
             "SELECT * FROM contact_messages ORDER BY created_at DESC"
@@ -295,7 +295,7 @@ async def list_messages():
 
 @router.put("/messages/{id}/read")
 async def mark_message_read(id: str):
-    pool = get_pool()
+    pool = await get_pool()
     async with pool.acquire() as conn:
         await conn.execute(
             "UPDATE contact_messages SET is_read = TRUE WHERE id = $1::uuid", id
@@ -305,7 +305,7 @@ async def mark_message_read(id: str):
 
 @router.delete("/messages/{id}")
 async def delete_message(id: str):
-    pool = get_pool()
+    pool = await get_pool()
     async with pool.acquire() as conn:
         result = await conn.execute(
             "DELETE FROM contact_messages WHERE id = $1::uuid", id
