@@ -1,4 +1,5 @@
 import asyncpg
+from typing import Optional
 from pydantic_settings import BaseSettings
 
 
@@ -17,7 +18,7 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-_pool: asyncpg.Pool | None = None
+_pool: Optional[asyncpg.Pool] = None
 
 
 async def get_pool() -> asyncpg.Pool:

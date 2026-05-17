@@ -249,12 +249,12 @@ export default function AdminProfilePage() {
           {/* File upload */}
           <div>
             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-3">
-              Upload PDF
+              Upload Resume (PDF or Word)
             </label>
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf,application/pdf"
+              accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               className="hidden"
               onChange={async (e) => {
                 const file = e.target.files?.[0];
@@ -294,7 +294,7 @@ export default function AdminProfilePage() {
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                    Choose PDF
+                    Choose File
                   </>
                 )}
               </button>

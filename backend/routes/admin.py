@@ -79,12 +79,23 @@ async def update_profile(data: ProfileUpdate):
 # --- Resume Upload ---
 @router.post("/resume/upload")
 async def upload_resume(file: UploadFile = File(...)):
-    if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_KEY or settings.SUPABASE_SERVICE_KEY == "your-service-role-key-here":
+    if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_KEY:
         raise HTTPException(status_code=500, detail="Supabase storage not configured. Add SUPABASE_URL and SUPABASE_SERVICE_KEY to .env")
 
+    allowed_types = {
+        "application/pdf": "pdf",
+        "application/msword": "doc",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+    }
+    filename = (file.filename or "").lower()
+    ext = next((e for e in ("pdf", "docx", "doc") if filename.endswith(f".{e}")), None)
+    fmt = allowed_types.get(file.content_type or "") or ext
+    if not fmt:
+        raise HTTPException(status_code=400, detail="Only PDF, DOC, or DOCX files are accepted")
+
     content = await file.read()
-    content_type = file.content_type or "application/pdf"
-    storage_url = f"{settings.SUPABASE_URL}/storage/v1/object/portfolio/resume.pdf"
+    content_type = file.content_type or "application/octet-stream"
+    storage_url = f"{settings.SUPABASE_URL}/storage/v1/object/portfolio/resume.{fmt}"
 
     def do_upload():
         req = urllib.request.Request(storage_url, data=content, method="POST")
@@ -103,7 +114,7 @@ async def upload_resume(file: UploadFile = File(...)):
     except RuntimeError as e:
         raise HTTPException(status_code=502, detail=str(e))
 
-    public_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/portfolio/resume.pdf"
+    public_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/portfolio/resume.{fmt}"
     return {"url": public_url}
 
 
