@@ -22,11 +22,11 @@ _pool: Optional[asyncpg.Pool] = None
 
 
 async def get_pool() -> asyncpg.Pool:
-    """Lazy-init pool — works in both long-running servers and serverless."""
     global _pool
     if _pool is None:
+        db_url = settings.DATABASE_URL.split("?")[0]
         _pool = await asyncpg.create_pool(
-            settings.DATABASE_URL,
+            db_url,
             min_size=1,
             max_size=5,
             statement_cache_size=0,
