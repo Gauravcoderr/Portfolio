@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Github, Linkedin, Mail, ArrowDown, Download, MapPin } from "lucide-react";
+import Link from "next/link";
 import type { Profile } from "@/types";
 
 interface HeroProps {
@@ -111,10 +112,8 @@ export default function Hero({ profile }: HeroProps) {
           </button>
 
           {profile.resume_url ? (
-            <a
-              href={profile.resume_url}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href="/resume"
               className="flex items-center gap-2 font-medium rounded-lg px-7 py-3 border transition-colors duration-150 text-sm hover:border-[var(--border-hover)] hover:text-[var(--text-primary)]"
               style={{
                 borderColor: "var(--border)",
@@ -123,8 +122,8 @@ export default function Hero({ profile }: HeroProps) {
               }}
             >
               <Download size={15} />
-              Download Resume
-            </a>
+              View Resume
+            </Link>
           ) : (
             <button
               onClick={() => handleScroll("#contact")}

@@ -80,15 +80,13 @@ export default function Navbar({ resumeUrl }: NavbarProps) {
             ))}
 
             {resumeUrl && (
-              <a
-                href={resumeUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href="/resume"
                 className="flex items-center gap-1.5 text-sm font-medium bg-[var(--accent)] hover:opacity-80 text-white rounded-lg px-4 py-2 transition-colors"
               >
                 <Download size={14} />
                 Resume
-              </a>
+              </Link>
             )}
           </div>
 
@@ -129,18 +127,20 @@ export default function Navbar({ resumeUrl }: NavbarProps) {
               ))}
 
               {resumeUrl && (
-                <motion.a
-                  href={resumeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: navLinks.length * 0.08 }}
-                  className="flex items-center gap-2 text-lg font-medium bg-[var(--accent)] hover:opacity-80 text-white rounded-lg px-6 py-3 transition-colors"
                 >
-                  <Download size={18} />
-                  Resume
-                </motion.a>
+                  <Link
+                    href="/resume"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-2 text-lg font-medium bg-[var(--accent)] hover:opacity-80 text-white rounded-lg px-6 py-3 transition-colors"
+                  >
+                    <Download size={18} />
+                    Resume
+                  </Link>
+                </motion.div>
               )}
             </div>
           </motion.div>

@@ -41,6 +41,17 @@ function adminHeaders(): HeadersInit {
   };
 }
 
+function handleAdminResponse(res: Response) {
+  if (res.status === 401) {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("admin_token");
+      window.location.href = "/admin/login";
+    }
+    throw new Error("Session expired. Please log in again.");
+  }
+  return res;
+}
+
 export async function adminLogin(username: string, password: string) {
   const res = await fetch(`${BASE_URL}/auth/login`, {
     method: "POST",
@@ -61,6 +72,7 @@ export async function uploadResume(file: File): Promise<string> {
     headers: { Authorization: `Bearer ${token}` },
     body: form,
   });
+  handleAdminResponse(res);
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: "Upload failed" }));
     throw new Error(err.detail || "Upload failed");
@@ -75,6 +87,7 @@ export async function updateProfile(data: Record<string, unknown>) {
     headers: adminHeaders(),
     body: JSON.stringify(data),
   });
+  handleAdminResponse(res);
   if (!res.ok) throw new Error("Failed to update profile");
   return res.json();
 }
@@ -83,6 +96,7 @@ export async function getAdminExperience() {
   const res = await fetch(`${BASE_URL}/admin/experience`, {
     headers: adminHeaders(),
   });
+  handleAdminResponse(res);
   if (!res.ok) throw new Error("Failed to fetch experience");
   return res.json();
 }
@@ -93,6 +107,7 @@ export async function createExperience(data: Record<string, unknown>) {
     headers: adminHeaders(),
     body: JSON.stringify(data),
   });
+  handleAdminResponse(res);
   if (!res.ok) throw new Error("Failed to create experience");
   return res.json();
 }
@@ -106,6 +121,7 @@ export async function updateExperience(
     headers: adminHeaders(),
     body: JSON.stringify(data),
   });
+  handleAdminResponse(res);
   if (!res.ok) throw new Error("Failed to update experience");
   return res.json();
 }
@@ -115,6 +131,7 @@ export async function deleteExperience(id: string) {
     method: "DELETE",
     headers: adminHeaders(),
   });
+  handleAdminResponse(res);
   if (!res.ok) throw new Error("Failed to delete experience");
   return res.json();
 }
@@ -123,6 +140,7 @@ export async function getAdminProjects() {
   const res = await fetch(`${BASE_URL}/admin/projects`, {
     headers: adminHeaders(),
   });
+  handleAdminResponse(res);
   if (!res.ok) throw new Error("Failed to fetch projects");
   return res.json();
 }
@@ -133,6 +151,7 @@ export async function createProject(data: Record<string, unknown>) {
     headers: adminHeaders(),
     body: JSON.stringify(data),
   });
+  handleAdminResponse(res);
   if (!res.ok) throw new Error("Failed to create project");
   return res.json();
 }
@@ -146,6 +165,7 @@ export async function updateProject(
     headers: adminHeaders(),
     body: JSON.stringify(data),
   });
+  handleAdminResponse(res);
   if (!res.ok) throw new Error("Failed to update project");
   return res.json();
 }
@@ -155,6 +175,7 @@ export async function deleteProject(id: string) {
     method: "DELETE",
     headers: adminHeaders(),
   });
+  handleAdminResponse(res);
   if (!res.ok) throw new Error("Failed to delete project");
   return res.json();
 }
@@ -163,6 +184,7 @@ export async function getAdminSkills() {
   const res = await fetch(`${BASE_URL}/admin/skills`, {
     headers: adminHeaders(),
   });
+  handleAdminResponse(res);
   if (!res.ok) throw new Error("Failed to fetch skills");
   return res.json();
 }
@@ -173,6 +195,7 @@ export async function createSkillCategory(data: Record<string, unknown>) {
     headers: adminHeaders(),
     body: JSON.stringify(data),
   });
+  handleAdminResponse(res);
   if (!res.ok) throw new Error("Failed to create skill category");
   return res.json();
 }
@@ -186,6 +209,7 @@ export async function updateSkillCategory(
     headers: adminHeaders(),
     body: JSON.stringify(data),
   });
+  handleAdminResponse(res);
   if (!res.ok) throw new Error("Failed to update skill category");
   return res.json();
 }
@@ -195,6 +219,7 @@ export async function deleteSkillCategory(id: string) {
     method: "DELETE",
     headers: adminHeaders(),
   });
+  handleAdminResponse(res);
   if (!res.ok) throw new Error("Failed to delete skill category");
   return res.json();
 }
@@ -205,6 +230,7 @@ export async function updateTheme(data: Record<string, unknown>) {
     headers: adminHeaders(),
     body: JSON.stringify(data),
   });
+  handleAdminResponse(res);
   if (!res.ok) throw new Error("Failed to update theme");
   return res.json();
 }
@@ -213,6 +239,7 @@ export async function getAdminMessages() {
   const res = await fetch(`${BASE_URL}/admin/messages`, {
     headers: adminHeaders(),
   });
+  handleAdminResponse(res);
   if (!res.ok) throw new Error("Failed to fetch messages");
   return res.json();
 }
@@ -222,6 +249,7 @@ export async function markMessageRead(id: string) {
     method: "PUT",
     headers: adminHeaders(),
   });
+  handleAdminResponse(res);
   if (!res.ok) throw new Error("Failed to mark as read");
   return res.json();
 }
@@ -231,6 +259,7 @@ export async function deleteMessage(id: string) {
     method: "DELETE",
     headers: adminHeaders(),
   });
+  handleAdminResponse(res);
   if (!res.ok) throw new Error("Failed to delete message");
   return res.json();
 }

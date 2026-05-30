@@ -41,9 +41,23 @@ export default function AdminLayout({
     const token = localStorage.getItem("admin_token");
     if (!token) {
       router.push("/admin/login");
-    } else {
-      setAuthenticated(true);
+      return;
     }
+
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      if (payload.exp && payload.exp * 1000 < Date.now()) {
+        localStorage.removeItem("admin_token");
+        router.push("/admin/login");
+        return;
+      }
+    } catch {
+      localStorage.removeItem("admin_token");
+      router.push("/admin/login");
+      return;
+    }
+
+    setAuthenticated(true);
   }, [pathname, router]);
 
   const handleLogout = () => {
