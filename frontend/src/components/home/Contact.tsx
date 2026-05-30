@@ -183,7 +183,7 @@ export default function Contact({ profile }: ContactProps) {
             <button
               type="submit"
               disabled={status === "loading"}
-              className="flex items-center justify-center gap-2 w-full bg-[var(--accent)] hover:bg-[var(--accent-dark)] disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-lg px-6 py-3 font-medium transition-colors"
+              className="flex items-center justify-center gap-2 w-full bg-[var(--accent)] hover:opacity-80 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-lg px-6 py-3 font-medium transition-opacity"
             >
               {status === "loading" ? (
                 <>

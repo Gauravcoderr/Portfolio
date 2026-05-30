@@ -78,12 +78,12 @@ export default function Experience({ items }: ExperienceProps) {
                     <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-green-500" />
                   </span>
                 ) : (
-                  <span className="block h-3 w-3 rounded-full bg-[var(--accent)] border-2 border-[var(--bg-primary)]" />
+                  <span className="block h-3 w-3 rounded-full bg-[var(--border-hover)] border-2 border-[var(--bg-primary)]" />
                 )}
               </div>
 
               {/* Card */}
-              <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--accent)]/30 transition-colors">
+              <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--border-hover)] transition-colors">
                 {/* Header */}
                 <div className="mb-4">
                   <h3 className="text-lg font-bold text-[var(--text-primary)]">
@@ -95,12 +95,12 @@ export default function Experience({ items }: ExperienceProps) {
                         href={exp.company_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[var(--accent)] hover:underline font-medium"
+                        className="text-[var(--text-primary)] hover:text-[var(--accent)] transition-colors font-medium"
                       >
                         {exp.company}
                       </a>
                     ) : (
-                      <span className="text-[var(--accent)] font-medium">
+                      <span className="text-[var(--text-primary)] font-medium">
                         {exp.company}
                       </span>
                     )}
@@ -119,7 +119,7 @@ export default function Experience({ items }: ExperienceProps) {
                     {exp.description.map((bullet, idx) => (
                       <li
                         key={idx}
-                        className="text-sm text-[var(--text-secondary)] leading-relaxed pl-4 relative before:content-[''] before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-[var(--accent)]/50"
+                        className="text-sm text-[var(--text-secondary)] leading-relaxed pl-4 relative before:content-[''] before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:rounded-full before:bg-[var(--border-hover)]"
                       >
                         {bullet}
                       </li>
@@ -133,7 +133,7 @@ export default function Experience({ items }: ExperienceProps) {
                     {exp.tech_stack.map((tech) => (
                       <span
                         key={tech}
-                        className="bg-[var(--accent)]/10 text-[var(--accent)] rounded-full px-3 py-1 text-xs font-medium"
+                        className="bg-[var(--bg-primary)] border border-[var(--border)] text-[var(--text-muted)] rounded-full px-3 py-1 text-xs font-medium"
                       >
                         {tech}
                       </span>

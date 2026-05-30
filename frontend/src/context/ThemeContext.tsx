@@ -28,6 +28,7 @@ export function ThemeProvider({
     root.style.setProperty("--accent", accentColor);
     root.style.setProperty("--accent-light", shades.light);
     root.style.setProperty("--accent-dark", shades.dark);
+    root.style.setProperty("--accent-blue", accentColor);
   }, [accentColor]);
 
   return (

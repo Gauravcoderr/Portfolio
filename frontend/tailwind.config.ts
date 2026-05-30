@@ -17,9 +17,9 @@ const config: Config = {
         },
       },
       fontFamily: {
-        heading: ["var(--font-syne)", "sans-serif"],
-        body: ["var(--font-onest)", "sans-serif"],
-        sans: ["var(--font-onest)", "system-ui", "sans-serif"],
+        heading: ["var(--font-inter)", "sans-serif"],
+        body:    ["var(--font-inter)", "sans-serif"],
+        sans:    ["var(--font-inter)", "system-ui", "sans-serif"],
       },
       animation: {
         "fade-up": "fadeUp 0.6s ease-out forwards",

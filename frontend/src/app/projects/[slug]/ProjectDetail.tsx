@@ -15,7 +15,7 @@ function TechBadge({ name }: { name: string }) {
   const [imgFailed, setImgFailed] = useState(false);
   return (
     <div
-      className="flex items-center gap-2 px-3 py-2 rounded-xl border transition-all duration-200 hover:scale-105"
+      className="flex items-center gap-2 px-3 py-2 rounded-xl border transition-colors duration-150 hover:border-[var(--border-hover)]"
       style={{ borderColor: "var(--border)", background: "var(--bg-secondary)" }}
     >
       {iconUrl && !imgFailed ? (
@@ -23,8 +23,8 @@ function TechBadge({ name }: { name: string }) {
         <img src={iconUrl} alt={name} width={18} height={18} className="w-[18px] h-[18px] object-contain"
           onError={() => setImgFailed(true)} loading="lazy" />
       ) : (
-        <span className="w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded"
-          style={{ background: "rgba(196,78,255,0.15)", color: "var(--accent)" }}>
+        <span className="w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded border"
+          style={{ background: "var(--bg-card)", borderColor: "var(--border)", color: "var(--text-muted)" }}>
           {name[0]}
         </span>
       )}
@@ -42,13 +42,13 @@ function ProjectScreenshot({ url, title }: { url: string; title: string }) {
     <div className="rounded-2xl overflow-hidden border shadow-2xl shadow-black/60"
       style={{ borderColor: "var(--border)" }}>
       {/* Browser chrome */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b" style={{ background: "#141428", borderColor: "#222" }}>
+      <div className="flex items-center gap-2 px-4 py-3 border-b" style={{ background: "var(--bg-card)", borderColor: "var(--border)" }}>
         <div className="flex gap-1.5 shrink-0">
           <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
           <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
           <div className="w-3 h-3 rounded-full bg-[#28c840]" />
         </div>
-        <div className="flex-1 rounded-md flex items-center gap-2 px-3 py-1.5" style={{ background: "#0e0e24" }}>
+        <div className="flex-1 rounded-md flex items-center gap-2 px-3 py-1.5" style={{ background: "var(--bg-primary)" }}>
           <Globe size={11} className="shrink-0" style={{ color: "#555" }} />
           <span className="text-xs truncate" style={{ color: "#666" }}>{domain}</span>
         </div>
@@ -65,7 +65,7 @@ function ProjectScreenshot({ url, title }: { url: string; title: string }) {
         {status === "loading" && (
           <div className="absolute inset-0 flex flex-col gap-3 p-6">
             {[0.7, 1, 0.85, 0.6, 0.9, 0.75].map((w, i) => (
-              <div key={i} className="h-4 rounded animate-pulse" style={{ background: "#1a1a2a", width: `${w * 100}%` }} />
+              <div key={i} className="h-4 rounded animate-pulse" style={{ background: "var(--bg-card)", width: `${w * 100}%` }} />
             ))}
           </div>
         )}
@@ -103,7 +103,7 @@ export default function ProjectDetail({ project, otherProjects }: Props) {
     <div className="min-h-screen" style={{ background: "var(--bg-primary)", color: "var(--text-primary)" }}>
       {/* Top nav */}
       <nav className="sticky top-0 z-50 border-b backdrop-blur-xl"
-        style={{ background: "rgba(7,5,26,0.85)", borderColor: "var(--border)" }}>
+        style={{ background: "rgba(1,1,2,0.85)", borderColor: "var(--border)" }}>
         <div className="max-w-5xl mx-auto px-6 h-14 flex items-center gap-4">
           <Link href="/" className="flex items-center gap-1.5 text-sm transition-colors hover:text-[var(--accent)]"
             style={{ color: "var(--text-muted)" }}>
@@ -133,9 +133,9 @@ export default function ProjectDetail({ project, otherProjects }: Props) {
           <div className="flex flex-wrap items-center gap-2 mb-5">
             <span className="flex items-center gap-1.5 text-xs px-3 py-1 rounded-full border"
               style={{
-                borderColor: project.category === "professional" ? "rgba(91,141,239,0.4)" : "rgba(196,78,255,0.4)",
-                background: project.category === "professional" ? "rgba(91,141,239,0.08)" : "rgba(196,78,255,0.08)",
-                color: project.category === "professional" ? "#8ab8ff" : "var(--accent-light)",
+                borderColor: "var(--border-hover)",
+                background: "var(--bg-card)",
+                color: "var(--text-secondary)",
               }}>
               {project.category === "professional" ? <Briefcase size={10} /> : <Code2 size={10} />}
               {categoryLabel}
@@ -166,32 +166,19 @@ export default function ProjectDetail({ project, otherProjects }: Props) {
           <div className="flex flex-wrap gap-3">
             {project.live_url && (
               <a href={project.live_url} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm text-white transition-all duration-200 hover:scale-105 active:scale-95"
-                style={{
-                  background: "linear-gradient(135deg, var(--accent) 0%, var(--accent-blue) 100%)",
-                  boxShadow: "0 0 30px rgba(196,78,255,0.35)",
-                }}>
+                className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm text-white transition-opacity duration-150 hover:opacity-80"
+                style={{ background: "var(--accent)" }}>
                 <ExternalLink size={15} />
                 View Live Site
               </a>
             )}
             {project.github_url && (
               <a href={project.github_url} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium text-sm transition-all duration-200 hover:scale-105 backdrop-blur-sm"
+                className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium text-sm transition-colors duration-150 border hover:border-[var(--border-hover)] hover:text-[var(--text-primary)]"
                 style={{
-                  border: "1px solid rgba(196,78,255,0.3)",
-                  background: "rgba(196,78,255,0.06)",
+                  borderColor: "var(--border)",
+                  background: "transparent",
                   color: "var(--text-secondary)",
-                }}
-                onMouseEnter={e => {
-                  const el = e.currentTarget as HTMLElement;
-                  el.style.borderColor = "rgba(196,78,255,0.6)";
-                  el.style.color = "var(--text-primary)";
-                }}
-                onMouseLeave={e => {
-                  const el = e.currentTarget as HTMLElement;
-                  el.style.borderColor = "rgba(196,78,255,0.3)";
-                  el.style.color = "var(--text-secondary)";
                 }}>
                 <Github size={15} />
                 View on GitHub
@@ -224,8 +211,7 @@ export default function ProjectDetail({ project, otherProjects }: Props) {
             >
               <h2 className="text-xl font-bold mb-5 font-heading" style={{ color: "var(--text-primary)" }}>
                 Key Highlights
-                <span className="block mt-2 h-[3px] w-10 rounded-full"
-                  style={{ background: "linear-gradient(90deg, var(--accent), var(--accent-blue))" }} />
+                <div className="mt-2 h-px w-10" style={{ background: "var(--border-hover)" }} />
               </h2>
               <ul className="space-y-3">
                 {project.bullets.map((bullet, i) => (
@@ -283,14 +269,8 @@ export default function ProjectDetail({ project, otherProjects }: Props) {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {otherProjects.map((p) => (
                 <Link key={p.id} href={`/projects/${p.slug}`}
-                  className="group flex flex-col p-4 rounded-xl border transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
+                  className="group flex flex-col p-4 rounded-xl border transition-colors duration-150 hover:border-[var(--border-hover)]"
                   style={{ borderColor: "var(--border)", background: "var(--bg-card)" }}
-                  onMouseEnter={e => {
-                    (e.currentTarget as HTMLElement).style.borderColor = "rgba(196,78,255,0.4)";
-                  }}
-                  onMouseLeave={e => {
-                    (e.currentTarget as HTMLElement).style.borderColor = "var(--border)";
-                  }}
                 >
                   <h3 className="text-sm font-semibold mb-1.5 group-hover:text-[var(--accent)] transition-colors"
                     style={{ color: "var(--text-primary)" }}>

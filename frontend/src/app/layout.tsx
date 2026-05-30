@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import { Syne, Onest } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/components/layout/QueryProvider";
 import { ThemeProvider } from "@/context/ThemeContext";
 
-const syne = Syne({ subsets: ["latin"], variable: "--font-syne", weight: ["400","500","600","700","800"] });
-const onest = Onest({ subsets: ["latin"], variable: "--font-onest", weight: ["300","400","500","600","700"] });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", weight: ["300","400","500","600","700","800"], display: "swap" });
 
 export const metadata: Metadata = {
   title: "Gaurav Rauthan | Frontend Developer",
@@ -26,8 +25,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${syne.variable} ${onest.variable}`}>
-      <body className="font-body antialiased">
+    <html lang="en" className={inter.variable}>
+      <body className="antialiased">
         <QueryProvider>
           <ThemeProvider>{children}</ThemeProvider>
         </QueryProvider>

@@ -61,7 +61,7 @@ export default function Navbar({ resumeUrl }: NavbarProps) {
           {/* Logo */}
           <Link
             href="/"
-            className="text-xl font-bold tracking-tight hover:text-[var(--accent)] transition-colors"
+            className="text-xl font-bold tracking-tight hover:text-[var(--text-primary)] transition-colors" style={{ letterSpacing: "-0.02em" }}
           >
             GR
           </Link>
@@ -84,7 +84,7 @@ export default function Navbar({ resumeUrl }: NavbarProps) {
                 href={resumeUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-sm font-medium bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white rounded-lg px-4 py-2 transition-colors"
+                className="flex items-center gap-1.5 text-sm font-medium bg-[var(--accent)] hover:opacity-80 text-white rounded-lg px-4 py-2 transition-colors"
               >
                 <Download size={14} />
                 Resume
@@ -136,7 +136,7 @@ export default function Navbar({ resumeUrl }: NavbarProps) {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: navLinks.length * 0.08 }}
-                  className="flex items-center gap-2 text-lg font-medium bg-[var(--accent)] hover:bg-[var(--accent-dark)] text-white rounded-lg px-6 py-3 transition-colors"
+                  className="flex items-center gap-2 text-lg font-medium bg-[var(--accent)] hover:opacity-80 text-white rounded-lg px-6 py-3 transition-colors"
                 >
                   <Download size={18} />
                   Resume

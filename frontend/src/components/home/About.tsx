@@ -43,12 +43,12 @@ export default function About({ profile }: AboutProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: 0.3 + i * 0.1 }}
-              className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-6 text-center hover:border-[var(--accent)]/50 transition-colors"
+              className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-6 text-center hover:border-[var(--border-hover)] transition-colors"
             >
-              <p className="text-3xl font-bold text-gradient mb-1">
+              <p className="text-3xl font-bold mb-1" style={{ color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
                 {stat.value}
               </p>
-              <p className="text-sm text-[var(--text-secondary)]">
+              <p className="text-sm" style={{ color: "var(--text-muted)" }}>
                 {stat.label}
               </p>
             </motion.div>
