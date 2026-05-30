@@ -58,7 +58,7 @@ async def update_profile(data: ProfileUpdate):
         existing = await conn.fetchrow("SELECT id FROM profile LIMIT 1")
         if existing:
             sets = ", ".join(
-                f"{k} = ${i+2}" for i, k in enumerate(dump.keys())
+                f'"{k}" = ${i+2}' for i, k in enumerate(dump.keys())
             )
             vals = list(dump.values())
             await conn.execute(
@@ -160,7 +160,7 @@ async def update_experience(id: str, data: ExperienceUpdate):
         existing = await conn.fetchrow("SELECT id FROM experience WHERE id = $1::uuid", id)
         if not existing:
             raise HTTPException(status_code=404, detail="Experience not found")
-        sets = ", ".join(f"{k} = ${i+2}" for i, k in enumerate(dump.keys()))
+        sets = ", ".join(f'"{k}" = ${i+2}' for i, k in enumerate(dump.keys()))
         vals = list(dump.values())
         await conn.execute(
             f'UPDATE experience SET {sets}, updated_at = ${len(vals)+2} WHERE id = $1::uuid',
@@ -222,7 +222,7 @@ async def update_project(id: str, data: ProjectUpdate):
         existing = await conn.fetchrow("SELECT id FROM projects WHERE id = $1::uuid", id)
         if not existing:
             raise HTTPException(status_code=404, detail="Project not found")
-        sets = ", ".join(f"{k} = ${i+2}" for i, k in enumerate(dump.keys()))
+        sets = ", ".join(f'"{k}" = ${i+2}' for i, k in enumerate(dump.keys()))
         vals = list(dump.values())
         await conn.execute(
             f'UPDATE projects SET {sets}, updated_at = ${len(vals)+2} WHERE id = $1::uuid',
@@ -281,7 +281,7 @@ async def update_skill_category(id: str, data: SkillCategoryUpdate):
         existing = await conn.fetchrow("SELECT id FROM skills WHERE id = $1::uuid", id)
         if not existing:
             raise HTTPException(status_code=404, detail="Skill category not found")
-        sets = ", ".join(f"{k} = ${i+2}" for i, k in enumerate(dump.keys()))
+        sets = ", ".join(f'"{k}" = ${i+2}' for i, k in enumerate(dump.keys()))
         vals = list(dump.values())
         await conn.execute(
             f'UPDATE skills SET {sets}, updated_at = ${len(vals)+2} WHERE id = $1::uuid',
@@ -310,7 +310,7 @@ async def update_theme(data: ThemeUpdate):
     async with pool.acquire() as conn:
         existing = await conn.fetchrow("SELECT id FROM theme LIMIT 1")
         if existing:
-            sets = ", ".join(f"{k} = ${i+2}" for i, k in enumerate(dump.keys()))
+            sets = ", ".join(f'"{k}" = ${i+2}' for i, k in enumerate(dump.keys()))
             vals = list(dump.values())
             await conn.execute(
                 f"UPDATE theme SET {sets}, updated_at = ${len(vals)+2} WHERE id = $1",
