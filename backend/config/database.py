@@ -21,14 +21,15 @@ db = None
 
 async def connect_db():
     global client, db
-    uri = settings.MONGODB_URI.split("?")[0]  # strip query params — prevents &amp; encoding issues
+    raw = settings.MONGODB_URI.strip().strip('"').strip("'")
+    uri = raw.split("?")[0]
     client = AsyncIOMotorClient(uri)
     db = client["portfolio"]
     await db.experience.create_index("order")
     await db.projects.create_index("order")
     await db.skills.create_index("order")
     await db.contact_messages.create_index([("created_at", -1)])
-    print("Connected to MongoDB: portfolio")
+    print(f"Connected to MongoDB: portfolio (uri={uri[:40]}...)")
 
 
 async def close_db():
