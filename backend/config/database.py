@@ -36,5 +36,8 @@ async def close_db():
         client.close()
 
 
-def get_db():
+async def get_db():
+    global client, db
+    if db is None:
+        await connect_db()
     return db

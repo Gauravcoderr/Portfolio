@@ -11,7 +11,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 @router.post("/login")
 async def admin_login(data: AdminLogin):
-    db = get_db()
+    db = await get_db()
     user = await db.admin_users.find_one({"username": data.username})
 
     if not user or not pwd_context.verify(data.password, user["password_hash"]):

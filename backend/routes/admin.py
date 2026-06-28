@@ -42,7 +42,7 @@ def to_oid(id: str):
 # --- Profile ---
 @router.put("/profile")
 async def update_profile(data: ProfileUpdate):
-    db = get_db()
+    db = await get_db()
     now = datetime.now(timezone.utc)
     dump = data.model_dump(exclude_none=True)
     if "social_links" in dump and dump["social_links"]:
@@ -62,14 +62,14 @@ async def upload_resume(file: UploadFile = File(...)):
 # --- Experience ---
 @router.get("/experience")
 async def list_experience():
-    db = get_db()
+    db = await get_db()
     docs = await db.experience.find({}).sort("order", 1).to_list(None)
     return docs_to_list(docs)
 
 
 @router.post("/experience")
 async def create_experience(data: ExperienceCreate):
-    db = get_db()
+    db = await get_db()
     now = datetime.now(timezone.utc)
     doc = data.model_dump()
     doc["created_at"] = now
@@ -81,7 +81,7 @@ async def create_experience(data: ExperienceCreate):
 
 @router.put("/experience/{id}")
 async def update_experience(id: str, data: ExperienceUpdate):
-    db = get_db()
+    db = await get_db()
     now = datetime.now(timezone.utc)
     dump = data.model_dump(exclude_none=True)
     dump["updated_at"] = now
@@ -94,7 +94,7 @@ async def update_experience(id: str, data: ExperienceUpdate):
 
 @router.delete("/experience/{id}")
 async def delete_experience(id: str):
-    db = get_db()
+    db = await get_db()
     result = await db.experience.delete_one({"_id": to_oid(id)})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Experience not found")
@@ -104,14 +104,14 @@ async def delete_experience(id: str):
 # --- Projects ---
 @router.get("/projects")
 async def list_projects():
-    db = get_db()
+    db = await get_db()
     docs = await db.projects.find({}).sort("order", 1).to_list(None)
     return docs_to_list(docs)
 
 
 @router.post("/projects")
 async def create_project(data: ProjectCreate):
-    db = get_db()
+    db = await get_db()
     now = datetime.now(timezone.utc)
     doc = data.model_dump()
     doc["created_at"] = now
@@ -123,7 +123,7 @@ async def create_project(data: ProjectCreate):
 
 @router.put("/projects/{id}")
 async def update_project(id: str, data: ProjectUpdate):
-    db = get_db()
+    db = await get_db()
     now = datetime.now(timezone.utc)
     dump = data.model_dump(exclude_none=True)
     dump["updated_at"] = now
@@ -136,7 +136,7 @@ async def update_project(id: str, data: ProjectUpdate):
 
 @router.delete("/projects/{id}")
 async def delete_project(id: str):
-    db = get_db()
+    db = await get_db()
     result = await db.projects.delete_one({"_id": to_oid(id)})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -146,14 +146,14 @@ async def delete_project(id: str):
 # --- Skills ---
 @router.get("/skills")
 async def list_skills():
-    db = get_db()
+    db = await get_db()
     docs = await db.skills.find({}).sort("order", 1).to_list(None)
     return docs_to_list(docs)
 
 
 @router.post("/skills")
 async def create_skill_category(data: SkillCategoryCreate):
-    db = get_db()
+    db = await get_db()
     now = datetime.now(timezone.utc)
     doc = {
         "category": data.category,
@@ -169,7 +169,7 @@ async def create_skill_category(data: SkillCategoryCreate):
 
 @router.put("/skills/{id}")
 async def update_skill_category(id: str, data: SkillCategoryUpdate):
-    db = get_db()
+    db = await get_db()
     now = datetime.now(timezone.utc)
     dump = data.model_dump(exclude_none=True)
     if "items" in dump:
@@ -187,7 +187,7 @@ async def update_skill_category(id: str, data: SkillCategoryUpdate):
 
 @router.delete("/skills/{id}")
 async def delete_skill_category(id: str):
-    db = get_db()
+    db = await get_db()
     result = await db.skills.delete_one({"_id": to_oid(id)})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Skill category not found")
@@ -197,7 +197,7 @@ async def delete_skill_category(id: str):
 # --- Theme ---
 @router.put("/theme")
 async def update_theme(data: ThemeUpdate):
-    db = get_db()
+    db = await get_db()
     now = datetime.now(timezone.utc)
     dump = data.model_dump(exclude_none=True)
     dump["updated_at"] = now
@@ -209,21 +209,21 @@ async def update_theme(data: ThemeUpdate):
 # --- Messages ---
 @router.get("/messages")
 async def list_messages():
-    db = get_db()
+    db = await get_db()
     docs = await db.contact_messages.find({}).sort("created_at", -1).to_list(None)
     return docs_to_list(docs)
 
 
 @router.put("/messages/{id}/read")
 async def mark_message_read(id: str):
-    db = get_db()
+    db = await get_db()
     await db.contact_messages.update_one({"_id": to_oid(id)}, {"$set": {"is_read": True}})
     return {"message": "Marked as read"}
 
 
 @router.delete("/messages/{id}")
 async def delete_message(id: str):
-    db = get_db()
+    db = await get_db()
     result = await db.contact_messages.delete_one({"_id": to_oid(id)})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Message not found")

@@ -22,7 +22,7 @@ def docs_to_list(docs) -> list:
 
 @router.get("/portfolio")
 async def get_portfolio():
-    db = get_db()
+    db = await get_db()
     profile = await db.profile.find_one({})
     experience = await db.experience.find({}).sort("order", 1).to_list(None)
     projects = await db.projects.find({}).sort("order", 1).to_list(None)
@@ -40,7 +40,7 @@ async def get_portfolio():
 
 @router.post("/contact")
 async def submit_contact(data: ContactMessageCreate):
-    db = get_db()
+    db = await get_db()
     doc = {
         "name": data.name,
         "email": data.email,
