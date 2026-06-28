@@ -1,11 +1,20 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from config.database import settings
+from contextlib import asynccontextmanager
+from config.database import connect_db, close_db
 from routes.portfolio import router as portfolio_router
 from routes.auth import router as auth_router
 from routes.admin import router as admin_router
 
-app = FastAPI(title="Portfolio API", version="1.0.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await connect_db()
+    yield
+    await close_db()
+
+
+app = FastAPI(title="Portfolio API", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

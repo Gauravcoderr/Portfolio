@@ -1,10 +1,7 @@
-import json
-import asyncio
-import urllib.request
-import urllib.error
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from datetime import datetime, timezone
-from config.database import get_pool, settings
+from bson import ObjectId
+from config.database import get_db
 from middleware.auth import verify_admin
 from models.schemas import (
     ProfileUpdate,
@@ -22,160 +19,84 @@ router = APIRouter(
 )
 
 
-def row_to_dict(row) -> dict:
-    if row is None:
+def doc_to_dict(doc) -> dict:
+    if doc is None:
         return {}
-    d = dict(row)
-    for k, v in d.items():
-        if isinstance(v, str):
-            try:
-                parsed = json.loads(v)
-                if isinstance(parsed, (list, dict)):
-                    d[k] = parsed
-            except (json.JSONDecodeError, TypeError):
-                pass
-        if hasattr(v, "isoformat"):
-            d[k] = v.isoformat()
-    if "id" in d and d["id"] is not None:
-        d["id"] = str(d["id"])
+    d = dict(doc)
+    if "_id" in d:
+        d["id"] = str(d.pop("_id"))
     return d
 
 
-def rows_to_list(rows) -> list:
-    return [row_to_dict(dict(r)) for r in rows]
+def docs_to_list(docs) -> list:
+    return [doc_to_dict(d) for d in docs]
+
+
+def to_oid(id: str):
+    try:
+        return ObjectId(id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid id")
 
 
 # --- Profile ---
 @router.put("/profile")
 async def update_profile(data: ProfileUpdate):
-    pool = await get_pool()
+    db = get_db()
     now = datetime.now(timezone.utc)
     dump = data.model_dump(exclude_none=True)
     if "social_links" in dump and dump["social_links"]:
-        dump["social_links"] = json.dumps(dump["social_links"])
-
-    async with pool.acquire() as conn:
-        existing = await conn.fetchrow("SELECT id FROM profile LIMIT 1")
-        if existing:
-            sets = ", ".join(
-                f'"{k}" = ${i+2}' for i, k in enumerate(dump.keys())
-            )
-            vals = list(dump.values())
-            await conn.execute(
-                f"UPDATE profile SET {sets}, updated_at = ${len(vals)+2} WHERE id = $1",
-                existing["id"], *vals, now,
-            )
-        else:
-            cols = ", ".join(dump.keys())
-            placeholders = ", ".join(f"${i+1}" for i in range(len(dump)))
-            await conn.execute(
-                f"INSERT INTO profile ({cols}, updated_at) VALUES ({placeholders}, ${len(dump)+1})",
-                *dump.values(), now,
-            )
-        row = await conn.fetchrow("SELECT * FROM profile LIMIT 1")
-    return row_to_dict(row)
+        dump["social_links"] = dump["social_links"].model_dump() if hasattr(dump["social_links"], "model_dump") else dump["social_links"]
+    dump["updated_at"] = now
+    await db.profile.update_one({}, {"$set": dump}, upsert=True)
+    doc = await db.profile.find_one({})
+    return doc_to_dict(doc)
 
 
-# --- Resume Upload ---
+# --- Resume Upload (Supabase removed — use Cloudinary or manual URL) ---
 @router.post("/resume/upload")
 async def upload_resume(file: UploadFile = File(...)):
-    if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_KEY:
-        raise HTTPException(status_code=500, detail="Supabase storage not configured. Add SUPABASE_URL and SUPABASE_SERVICE_KEY to .env")
-
-    allowed_types = {
-        "application/pdf": "pdf",
-        "application/msword": "doc",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
-    }
-    filename = (file.filename or "").lower()
-    ext = next((e for e in ("pdf", "docx", "doc") if filename.endswith(f".{e}")), None)
-    fmt = allowed_types.get(file.content_type or "") or ext
-    if not fmt:
-        raise HTTPException(status_code=400, detail="Only PDF, DOC, or DOCX files are accepted")
-
-    content = await file.read()
-    content_type = file.content_type or "application/octet-stream"
-    storage_url = f"{settings.SUPABASE_URL}/storage/v1/object/portfolio/resume.{fmt}"
-
-    def do_upload():
-        req = urllib.request.Request(storage_url, data=content, method="POST")
-        req.add_header("Authorization", f"Bearer {settings.SUPABASE_SERVICE_KEY}")
-        req.add_header("Content-Type", content_type)
-        req.add_header("x-upsert", "true")
-        try:
-            urllib.request.urlopen(req)
-        except urllib.error.HTTPError as e:
-            body = e.read().decode()
-            raise RuntimeError(f"Supabase upload failed ({e.code}): {body}")
-
-    loop = asyncio.get_event_loop()
-    try:
-        await loop.run_in_executor(None, do_upload)
-    except RuntimeError as e:
-        raise HTTPException(status_code=502, detail=str(e))
-
-    public_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/portfolio/resume.{fmt}"
-    return {"url": public_url}
+    raise HTTPException(status_code=501, detail="Resume upload not configured. Set resume_url directly via PUT /admin/profile.")
 
 
 # --- Experience ---
 @router.get("/experience")
 async def list_experience():
-    pool = await get_pool()
-    async with pool.acquire() as conn:
-        rows = await conn.fetch('SELECT * FROM experience ORDER BY "order" ASC')
-    return rows_to_list(rows)
+    db = get_db()
+    docs = await db.experience.find({}).sort("order", 1).to_list(None)
+    return docs_to_list(docs)
 
 
 @router.post("/experience")
 async def create_experience(data: ExperienceCreate):
-    pool = await get_pool()
+    db = get_db()
     now = datetime.now(timezone.utc)
-    async with pool.acquire() as conn:
-        row = await conn.fetchrow(
-            """
-            INSERT INTO experience
-              (company, role, location, start_date, end_date, is_current,
-               description, tech_stack, company_url, "order", created_at, updated_at)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$11)
-            RETURNING *
-            """,
-            data.company, data.role, data.location, data.start_date,
-            data.end_date, data.is_current,
-            json.dumps(data.description), json.dumps(data.tech_stack),
-            data.company_url, data.order, now,
-        )
-    return row_to_dict(row)
+    doc = data.model_dump()
+    doc["created_at"] = now
+    doc["updated_at"] = now
+    result = await db.experience.insert_one(doc)
+    created = await db.experience.find_one({"_id": result.inserted_id})
+    return doc_to_dict(created)
 
 
 @router.put("/experience/{id}")
 async def update_experience(id: str, data: ExperienceUpdate):
-    pool = await get_pool()
+    db = get_db()
     now = datetime.now(timezone.utc)
     dump = data.model_dump(exclude_none=True)
-    for k in ("description", "tech_stack"):
-        if k in dump:
-            dump[k] = json.dumps(dump[k])
-    async with pool.acquire() as conn:
-        existing = await conn.fetchrow("SELECT id FROM experience WHERE id = $1::uuid", id)
-        if not existing:
-            raise HTTPException(status_code=404, detail="Experience not found")
-        sets = ", ".join(f'"{k}" = ${i+2}' for i, k in enumerate(dump.keys()))
-        vals = list(dump.values())
-        await conn.execute(
-            f'UPDATE experience SET {sets}, updated_at = ${len(vals)+2} WHERE id = $1::uuid',
-            id, *vals, now,
-        )
-        row = await conn.fetchrow("SELECT * FROM experience WHERE id = $1::uuid", id)
-    return row_to_dict(row)
+    dump["updated_at"] = now
+    result = await db.experience.update_one({"_id": to_oid(id)}, {"$set": dump})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Experience not found")
+    doc = await db.experience.find_one({"_id": to_oid(id)})
+    return doc_to_dict(doc)
 
 
 @router.delete("/experience/{id}")
 async def delete_experience(id: str):
-    pool = await get_pool()
-    async with pool.acquire() as conn:
-        result = await conn.execute("DELETE FROM experience WHERE id = $1::uuid", id)
-    if result == "DELETE 0":
+    db = get_db()
+    result = await db.experience.delete_one({"_id": to_oid(id)})
+    if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Experience not found")
     return {"message": "Deleted successfully"}
 
@@ -183,61 +104,41 @@ async def delete_experience(id: str):
 # --- Projects ---
 @router.get("/projects")
 async def list_projects():
-    pool = await get_pool()
-    async with pool.acquire() as conn:
-        rows = await conn.fetch('SELECT * FROM projects ORDER BY "order" ASC')
-    return rows_to_list(rows)
+    db = get_db()
+    docs = await db.projects.find({}).sort("order", 1).to_list(None)
+    return docs_to_list(docs)
 
 
 @router.post("/projects")
 async def create_project(data: ProjectCreate):
-    pool = await get_pool()
+    db = get_db()
     now = datetime.now(timezone.utc)
-    async with pool.acquire() as conn:
-        row = await conn.fetchrow(
-            """
-            INSERT INTO projects
-              (title, slug, description, bullets, image_url, live_url,
-               github_url, tech_stack, category, is_featured, "order", created_at, updated_at)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$12)
-            RETURNING *
-            """,
-            data.title, data.slug, data.description,
-            json.dumps(data.bullets), data.image_url, data.live_url,
-            data.github_url, json.dumps(data.tech_stack),
-            data.category, data.is_featured, data.order, now,
-        )
-    return row_to_dict(row)
+    doc = data.model_dump()
+    doc["created_at"] = now
+    doc["updated_at"] = now
+    result = await db.projects.insert_one(doc)
+    created = await db.projects.find_one({"_id": result.inserted_id})
+    return doc_to_dict(created)
 
 
 @router.put("/projects/{id}")
 async def update_project(id: str, data: ProjectUpdate):
-    pool = await get_pool()
+    db = get_db()
     now = datetime.now(timezone.utc)
     dump = data.model_dump(exclude_none=True)
-    for k in ("bullets", "tech_stack"):
-        if k in dump:
-            dump[k] = json.dumps(dump[k])
-    async with pool.acquire() as conn:
-        existing = await conn.fetchrow("SELECT id FROM projects WHERE id = $1::uuid", id)
-        if not existing:
-            raise HTTPException(status_code=404, detail="Project not found")
-        sets = ", ".join(f'"{k}" = ${i+2}' for i, k in enumerate(dump.keys()))
-        vals = list(dump.values())
-        await conn.execute(
-            f'UPDATE projects SET {sets}, updated_at = ${len(vals)+2} WHERE id = $1::uuid',
-            id, *vals, now,
-        )
-        row = await conn.fetchrow("SELECT * FROM projects WHERE id = $1::uuid", id)
-    return row_to_dict(row)
+    dump["updated_at"] = now
+    result = await db.projects.update_one({"_id": to_oid(id)}, {"$set": dump})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Project not found")
+    doc = await db.projects.find_one({"_id": to_oid(id)})
+    return doc_to_dict(doc)
 
 
 @router.delete("/projects/{id}")
 async def delete_project(id: str):
-    pool = await get_pool()
-    async with pool.acquire() as conn:
-        result = await conn.execute("DELETE FROM projects WHERE id = $1::uuid", id)
-    if result == "DELETE 0":
+    db = get_db()
+    result = await db.projects.delete_one({"_id": to_oid(id)})
+    if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Project not found")
     return {"message": "Deleted successfully"}
 
@@ -245,58 +146,50 @@ async def delete_project(id: str):
 # --- Skills ---
 @router.get("/skills")
 async def list_skills():
-    pool = await get_pool()
-    async with pool.acquire() as conn:
-        rows = await conn.fetch('SELECT * FROM skills ORDER BY "order" ASC')
-    return rows_to_list(rows)
+    db = get_db()
+    docs = await db.skills.find({}).sort("order", 1).to_list(None)
+    return docs_to_list(docs)
 
 
 @router.post("/skills")
 async def create_skill_category(data: SkillCategoryCreate):
-    pool = await get_pool()
+    db = get_db()
     now = datetime.now(timezone.utc)
-    items = [i.model_dump() for i in data.items]
-    async with pool.acquire() as conn:
-        row = await conn.fetchrow(
-            """
-            INSERT INTO skills (category, items, "order", created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $4) RETURNING *
-            """,
-            data.category, json.dumps(items), data.order, now,
-        )
-    return row_to_dict(row)
+    doc = {
+        "category": data.category,
+        "items": [i.model_dump() for i in data.items],
+        "order": data.order,
+        "created_at": now,
+        "updated_at": now,
+    }
+    result = await db.skills.insert_one(doc)
+    created = await db.skills.find_one({"_id": result.inserted_id})
+    return doc_to_dict(created)
 
 
 @router.put("/skills/{id}")
 async def update_skill_category(id: str, data: SkillCategoryUpdate):
-    pool = await get_pool()
+    db = get_db()
     now = datetime.now(timezone.utc)
     dump = data.model_dump(exclude_none=True)
     if "items" in dump:
-        dump["items"] = json.dumps([
+        dump["items"] = [
             i.model_dump() if hasattr(i, "model_dump") else i
             for i in dump["items"]
-        ])
-    async with pool.acquire() as conn:
-        existing = await conn.fetchrow("SELECT id FROM skills WHERE id = $1::uuid", id)
-        if not existing:
-            raise HTTPException(status_code=404, detail="Skill category not found")
-        sets = ", ".join(f'"{k}" = ${i+2}' for i, k in enumerate(dump.keys()))
-        vals = list(dump.values())
-        await conn.execute(
-            f'UPDATE skills SET {sets}, updated_at = ${len(vals)+2} WHERE id = $1::uuid',
-            id, *vals, now,
-        )
-        row = await conn.fetchrow("SELECT * FROM skills WHERE id = $1::uuid", id)
-    return row_to_dict(row)
+        ]
+    dump["updated_at"] = now
+    result = await db.skills.update_one({"_id": to_oid(id)}, {"$set": dump})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Skill category not found")
+    doc = await db.skills.find_one({"_id": to_oid(id)})
+    return doc_to_dict(doc)
 
 
 @router.delete("/skills/{id}")
 async def delete_skill_category(id: str):
-    pool = await get_pool()
-    async with pool.acquire() as conn:
-        result = await conn.execute("DELETE FROM skills WHERE id = $1::uuid", id)
-    if result == "DELETE 0":
+    db = get_db()
+    result = await db.skills.delete_one({"_id": to_oid(id)})
+    if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Skill category not found")
     return {"message": "Deleted successfully"}
 
@@ -304,57 +197,34 @@ async def delete_skill_category(id: str):
 # --- Theme ---
 @router.put("/theme")
 async def update_theme(data: ThemeUpdate):
-    pool = await get_pool()
+    db = get_db()
     now = datetime.now(timezone.utc)
     dump = data.model_dump(exclude_none=True)
-    async with pool.acquire() as conn:
-        existing = await conn.fetchrow("SELECT id FROM theme LIMIT 1")
-        if existing:
-            sets = ", ".join(f'"{k}" = ${i+2}' for i, k in enumerate(dump.keys()))
-            vals = list(dump.values())
-            await conn.execute(
-                f"UPDATE theme SET {sets}, updated_at = ${len(vals)+2} WHERE id = $1",
-                existing["id"], *vals, now,
-            )
-        else:
-            cols = ", ".join(dump.keys())
-            placeholders = ", ".join(f"${i+1}" for i in range(len(dump)))
-            await conn.execute(
-                f"INSERT INTO theme ({cols}, updated_at) VALUES ({placeholders}, ${len(dump)+1})",
-                *dump.values(), now,
-            )
-        row = await conn.fetchrow("SELECT * FROM theme LIMIT 1")
-    return row_to_dict(row)
+    dump["updated_at"] = now
+    await db.theme.update_one({}, {"$set": dump}, upsert=True)
+    doc = await db.theme.find_one({})
+    return doc_to_dict(doc)
 
 
 # --- Messages ---
 @router.get("/messages")
 async def list_messages():
-    pool = await get_pool()
-    async with pool.acquire() as conn:
-        rows = await conn.fetch(
-            "SELECT * FROM contact_messages ORDER BY created_at DESC"
-        )
-    return rows_to_list(rows)
+    db = get_db()
+    docs = await db.contact_messages.find({}).sort("created_at", -1).to_list(None)
+    return docs_to_list(docs)
 
 
 @router.put("/messages/{id}/read")
 async def mark_message_read(id: str):
-    pool = await get_pool()
-    async with pool.acquire() as conn:
-        await conn.execute(
-            "UPDATE contact_messages SET is_read = TRUE WHERE id = $1::uuid", id
-        )
+    db = get_db()
+    await db.contact_messages.update_one({"_id": to_oid(id)}, {"$set": {"is_read": True}})
     return {"message": "Marked as read"}
 
 
 @router.delete("/messages/{id}")
 async def delete_message(id: str):
-    pool = await get_pool()
-    async with pool.acquire() as conn:
-        result = await conn.execute(
-            "DELETE FROM contact_messages WHERE id = $1::uuid", id
-        )
-    if result == "DELETE 0":
+    db = get_db()
+    result = await db.contact_messages.delete_one({"_id": to_oid(id)})
+    if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Message not found")
     return {"message": "Deleted successfully"}

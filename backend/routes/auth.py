@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from jose import jwt
 from datetime import datetime, timedelta, timezone
-from config.database import settings, get_pool
+from config.database import settings, get_db
 from models.schemas import AdminLogin
 from passlib.context import CryptContext
 
@@ -11,13 +11,10 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 @router.post("/login")
 async def admin_login(data: AdminLogin):
-    pool = await get_pool()
-    async with pool.acquire() as conn:
-        row = await conn.fetchrow(
-            "SELECT * FROM admin_users WHERE username = $1", data.username
-        )
+    db = get_db()
+    user = await db.admin_users.find_one({"username": data.username})
 
-    if not row or not pwd_context.verify(data.password, row["password_hash"]):
+    if not user or not pwd_context.verify(data.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     token = jwt.encode(

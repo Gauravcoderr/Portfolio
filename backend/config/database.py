@@ -1,16 +1,13 @@
-import asyncpg
-from typing import Optional
+from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = ""
-    JWT_SECRET: str = "change-this-secret"
+    MONGODB_URI: str = "mongodb://localhost:27017"
+    JWT_SECRET: str = "portfolio-jwt-secret"
     ADMIN_USERNAME: str = "admin"
-    ADMIN_PASSWORD: str = "admin123"
+    ADMIN_PASSWORD: str = "admin@123"
     FRONTEND_URL: str = "http://localhost:3000"
-    SUPABASE_URL: str = ""
-    SUPABASE_SERVICE_KEY: str = ""
 
     class Config:
         env_file = ".env"
@@ -18,18 +15,26 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-_pool: Optional[asyncpg.Pool] = None
+client: AsyncIOMotorClient = None
+db = None
 
 
-async def get_pool() -> asyncpg.Pool:
-    global _pool
-    if _pool is None:
-        db_url = settings.DATABASE_URL.split("?")[0]
-        _pool = await asyncpg.create_pool(
-            db_url,
-            min_size=1,
-            max_size=5,
-            statement_cache_size=0,
-            ssl='require',
-        )
-    return _pool
+async def connect_db():
+    global client, db
+    client = AsyncIOMotorClient(settings.MONGODB_URI)
+    db = client["portfolio"]
+    await db.experience.create_index("order")
+    await db.projects.create_index("order")
+    await db.skills.create_index("order")
+    await db.contact_messages.create_index([("created_at", -1)])
+    print("Connected to MongoDB: portfolio")
+
+
+async def close_db():
+    global client
+    if client:
+        client.close()
+
+
+def get_db():
+    return db
