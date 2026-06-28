@@ -21,7 +21,8 @@ db = None
 
 async def connect_db():
     global client, db
-    client = AsyncIOMotorClient(settings.MONGODB_URI)
+    uri = settings.MONGODB_URI.split("?")[0]  # strip query params — prevents &amp; encoding issues
+    client = AsyncIOMotorClient(uri)
     db = client["portfolio"]
     await db.experience.create_index("order")
     await db.projects.create_index("order")
