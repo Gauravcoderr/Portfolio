@@ -63,19 +63,15 @@ export async function adminLogin(username: string, password: string) {
 }
 
 export async function uploadResume(file: File): Promise<string> {
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("admin_token") : "";
   const form = new FormData();
   form.append("file", file);
-  const res = await fetch(`${BASE_URL}/admin/resume/upload`, {
+  const res = await fetch("/api/resume/upload", {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
     body: form,
   });
-  handleAdminResponse(res);
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: "Upload failed" }));
-    throw new Error(err.detail || "Upload failed");
+    const err = await res.json().catch(() => ({ error: "Upload failed" }));
+    throw new Error(err.error || "Upload failed");
   }
   const data = await res.json();
   return data.url as string;
