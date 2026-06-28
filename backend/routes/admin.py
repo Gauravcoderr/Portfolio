@@ -53,10 +53,30 @@ async def update_profile(data: ProfileUpdate):
     return doc_to_dict(doc)
 
 
-# --- Resume Upload (Supabase removed — use Cloudinary or manual URL) ---
+# --- Resume Upload (Cloudinary raw upload) ---
 @router.post("/resume/upload")
 async def upload_resume(file: UploadFile = File(...)):
-    raise HTTPException(status_code=501, detail="Resume upload not configured. Set resume_url directly via PUT /admin/profile.")
+    allowed = {"application/pdf", "application/msword",
+               "application/vnd.openxmlformats-officedocument.wordprocessingml.document"}
+    if file.content_type not in allowed:
+        raise HTTPException(status_code=400, detail="Only PDF, DOC, or DOCX accepted")
+
+    content = await file.read()
+    filename = file.filename or "resume"
+
+    import httpx
+    async with httpx.AsyncClient(timeout=30) as client:
+        resp = await client.post(
+            "https://api.cloudinary.com/v1_1/dadulg5bs/raw/upload",
+            data={"upload_preset": "Snkrs cart"},
+            files={"file": (filename, content, file.content_type)},
+        )
+
+    if resp.status_code != 200:
+        raise HTTPException(status_code=502, detail=f"Cloudinary upload failed: {resp.text}")
+
+    url = resp.json().get("secure_url", "")
+    return {"url": url}
 
 
 # --- Experience ---
