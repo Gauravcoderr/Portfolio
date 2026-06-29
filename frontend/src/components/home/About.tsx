@@ -9,7 +9,7 @@ interface AboutProps {
 }
 
 const stats = [
-  { value: "3+", label: "Years Experience" },
+  { value: "3.5+", label: "Years Experience" },
   { value: "10+", label: "Projects Built" },
   { value: "20+", label: "Tech Skills" },
 ];

@@ -10,7 +10,7 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://gaurav-rauthan.vercel.app";
 
 const DESCRIPTION =
-  "Frontend Developer with 3+ years of experience building high-performance web applications with React.js, Next.js, TypeScript, and GenAI.";
+  "Software Developer 2 with 3.5+ years of experience building high-performance web applications with React.js, Next.js, TypeScript, and GenAI.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
