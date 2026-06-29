@@ -4,8 +4,23 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Resume — Gaurav Rauthan",
-  description: "Resume of Gaurav Rauthan, Software Developer 2 | Full-Stack UI Engineer",
+  title: "Resume",
+  description:
+    "Resume of Gaurav Rauthan — Frontend Developer specialising in React.js, Next.js, and TypeScript.",
+  alternates: { canonical: "/resume" },
+  openGraph: {
+    title: "Resume | Gaurav Rauthan",
+    description:
+      "Resume of Gaurav Rauthan — Frontend Developer specialising in React.js, Next.js, and TypeScript.",
+    url: "/resume",
+    type: "profile",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Resume | Gaurav Rauthan",
+    description:
+      "Resume of Gaurav Rauthan — Frontend Developer specialising in React.js, Next.js, and TypeScript.",
+  },
 };
 
 export default async function ResumePage() {
