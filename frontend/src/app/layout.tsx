@@ -15,12 +15,13 @@ const DESCRIPTION =
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Gaurav Rauthan | Frontend Developer",
+    default: "Gaurav Rauthan | Software Developer",
     template: "%s | Gaurav Rauthan",
   },
   description: DESCRIPTION,
   keywords: [
     "Gaurav Rauthan",
+    "Software Developer",
     "Frontend Developer",
     "React Developer",
     "Next.js Developer",
@@ -48,12 +49,12 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: SITE_URL,
     siteName: "Gaurav Rauthan",
-    title: "Gaurav Rauthan | Frontend Developer",
+    title: "Gaurav Rauthan | Software Developer",
     description: DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Gaurav Rauthan | Frontend Developer",
+    title: "Gaurav Rauthan | Software Developer",
     description: DESCRIPTION,
   },
 };

@@ -6,12 +6,12 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Resume",
   description:
-    "Resume of Gaurav Rauthan — Frontend Developer specialising in React.js, Next.js, and TypeScript.",
+    "Resume of Gaurav Rauthan, Software Developer specialising in React.js, Next.js, and TypeScript.",
   alternates: { canonical: "/resume" },
   openGraph: {
     title: "Resume | Gaurav Rauthan",
     description:
-      "Resume of Gaurav Rauthan — Frontend Developer specialising in React.js, Next.js, and TypeScript.",
+      "Resume of Gaurav Rauthan, Software Developer specialising in React.js, Next.js, and TypeScript.",
     url: "/resume",
     type: "profile",
   },
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Resume | Gaurav Rauthan",
     description:
-      "Resume of Gaurav Rauthan — Frontend Developer specialising in React.js, Next.js, and TypeScript.",
+      "Resume of Gaurav Rauthan, Software Developer specialising in React.js, Next.js, and TypeScript.",
   },
 };
 

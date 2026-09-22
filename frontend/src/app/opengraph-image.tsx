@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "Gaurav Rauthan | Frontend Developer";
+export const alt = "Gaurav Rauthan | Software Developer";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -57,7 +57,7 @@ export default function Image() {
             letterSpacing: "-0.5px",
           }}
         >
-          Frontend Developer · React · Next.js · TypeScript · GenAI
+          Software Developer · React · Next.js · TypeScript · GenAI
         </div>
 
         {/* URL chip */}
